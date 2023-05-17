@@ -42,6 +42,13 @@ export function buildNextAuthOptions(
         // Google auth succeeded
         return true
       },
+
+      async session({ session, user }) {
+        return {
+          ...session,
+          user,
+        }
+      },
     },
   }
 }
