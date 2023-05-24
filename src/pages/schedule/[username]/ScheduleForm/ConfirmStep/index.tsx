@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
+import { api } from '../../../../../lib/axios'
+import { useRouter } from 'next/router'
 
 const confirmFormSchema = z.object({
   name: z.string().min(3, { message: 'Name must have at least 3 characters' }),
@@ -16,12 +18,12 @@ type ConfirmFormData = z.infer<typeof confirmFormSchema>
 
 interface ConfirmStepProps {
   schedulingDate: Date
-  onCancelConfirmation: () => void
+  onCloseConfirmation: () => void
 }
 
 export function ConfirmStep({
   schedulingDate,
-  onCancelConfirmation,
+  onCloseConfirmation,
 }: ConfirmStepProps) {
   const {
     register,
@@ -31,8 +33,22 @@ export function ConfirmStep({
     resolver: zodResolver(confirmFormSchema),
   })
 
-  function handleConfirmScheduling(data: ConfirmFormData) {
-    console.log(data)
+  const router = useRouter()
+  const username = String(router.query.username)
+
+  async function handleConfirmScheduling({
+    name,
+    email,
+    description,
+  }: ConfirmFormData) {
+    await api.post(`/users/${username}/schedule`, {
+      name,
+      email,
+      description,
+      date: schedulingDate,
+    })
+
+    onCloseConfirmation()
   }
 
   const describedDate = dayjs(schedulingDate).format('MMMM[ ]DD[ of ]YYYY')
@@ -71,7 +87,7 @@ export function ConfirmStep({
       </label>
 
       <FormActions>
-        <Button type="button" variant="tertiary" onClick={onCancelConfirmation}>
+        <Button type="button" variant="tertiary" onClick={onCloseConfirmation}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>
